@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db import models
 from django.conf import settings
@@ -70,7 +70,7 @@ class LockableModel(models.Model):
         Works by calculating if the last lock (self.locked_at) has timed out or not.
         """
         if isinstance(self.locked_at, datetime):
-            if (datetime.today() - self.locked_at).seconds < LOCK_TIMEOUT:
+            if (datetime.today() - self.locked_at) < timedelta(seconds=LOCK_TIMEOUT):
                 return True
             else:
                 return False
@@ -88,7 +88,9 @@ class LockableModel(models.Model):
         If you want to extend a lock beyond its current expiry date, initiate a new
         lock using the ``lock_for`` method.
         """
-        return LOCK_TIMEOUT - (datetime.today() - self.locked_at).seconds
+        diff = timedelta(seconds=LOCK_TIMEOUT) - (
+               datetime.today() - self.locked_at)
+        return diff.days * (24*60*60) + diff.seconds
     
     def lock_for(self, user, hard_lock=False):
         """
