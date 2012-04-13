@@ -5,6 +5,11 @@ Django has seen great adoption in the content management sphere, especially amon
 
 `django-locking` provides a system that makes concurrent editing impossible, and informs users of what other users are working on and for how long that content will remain locked. Users can still read locked content, but cannot modify or save it.
 
+About This Branch
+-----------------
+http://www.consumeraffairs.com is using the 0.3 codebase to add locking to specific models.  This branch includes some fixes for issues we've found:
+* Lock expiration and time remaining didn't work around 24 hours, because of how timedelta normalizes to days and seconds
+
 Documentation
 -------------
 
