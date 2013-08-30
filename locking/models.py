@@ -5,6 +5,10 @@ from datetime import datetime, timedelta
 from django.db import models
 from django.conf import settings
 from django.contrib.auth import models as auth
+try:
+    from django.utils.timezone import now
+except ImportError:
+    from datetime.datetime import now
 
 from locking import LOCK_TIMEOUT, logger
 import managers
@@ -70,7 +74,7 @@ class LockableModel(models.Model):
         Works by calculating if the last lock (self.locked_at) has timed out or not.
         """
         if isinstance(self.locked_at, datetime):
-            if (datetime.today() - self.locked_at) < timedelta(seconds=LOCK_TIMEOUT):
+            if (now() - self.locked_at) < timedelta(seconds=LOCK_TIMEOUT):
                 return True
             else:
                 return False
@@ -89,7 +93,7 @@ class LockableModel(models.Model):
         lock using the ``lock_for`` method.
         """
         diff = timedelta(seconds=LOCK_TIMEOUT) - (
-               datetime.today() - self.locked_at)
+               now() - self.locked_at)
         return diff.days * (24*60*60) + diff.seconds
     
     def lock_for(self, user, hard_lock=False):
@@ -114,7 +118,7 @@ class LockableModel(models.Model):
             raise ObjectLockedError("This object is already locked by another user. \
                 May not override, except through the `unlock` method.")
         else:
-            self._locked_at = datetime.today()
+            self._locked_at = now()
             self._locked_by = user
             self._hard_lock = self.__init_hard_lock = hard_lock
             date = self.locked_at.strftime("%H:%M:%S")
