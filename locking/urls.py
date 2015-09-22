@@ -1,4 +1,8 @@
-from django.conf.urls.defaults import *
+import django
+if django.VERSION >= (1, 6):
+    from django.conf.urls import patterns
+else:
+    from django.conf.urls.defaults import patterns
 
 urlpatterns = patterns('locking.views',
     # verwijst naar een ajax-view voor het lockingmechanisme
