@@ -1,3 +1,19 @@
+
+# TODO import these 3 lines instead:
+import sys
+from os.path import dirname, join
+from django.apps import apps
+from django.conf import settings, urls
+from django.utils import timezone
+
+sys.path.append(join(dirname(__file__), 'test_app'))
+installed_apps = list(settings.INSTALLED_APPS) + ['story_app']
+apps.set_installed_apps(installed_apps)
+
+
+
+from django.test import TestCase, override_settings
+
 from datetime import datetime, timedelta
 import simplejson
 
@@ -6,11 +22,13 @@ from django.test.client import Client
 from django.contrib.auth.models import User
 
 from locking import models, views, LOCK_TIMEOUT
-from locking.tests.utils import TestCase
-from locking.tests import models as testmodels
+from story_app import models as testmodels
+
 
 class AppTestCase(TestCase):
-    fixtures = ['locking_scenario',]
+    fixtures = ['locking_scenario', ]
+    urls = 'story_app.urls'
+
 
     def setUp(self):
         self.alt_story, self.story = testmodels.Story.objects.all()
@@ -69,13 +87,13 @@ class AppTestCase(TestCase):
     def test_lock_expiration(self):
         self.story.lock_for(self.user)
         self.assertTrue(self.story.is_locked)
-        self.story._locked_at = datetime.today() - timedelta(minutes=LOCK_TIMEOUT+1)
+        self.story._locked_at = timezone.now() - timedelta(minutes=LOCK_TIMEOUT+1)
         self.assertFalse(self.story.is_locked)
 
     def test_lock_expiration_day(self):
         self.story.lock_for(self.user)
         self.assertTrue(self.story.is_locked)
-        self.story._locked_at = datetime.today() - timedelta(days=1, seconds=1)
+        self.story._locked_at = timezone.now() - timedelta(days=1, seconds=1)
         self.assertFalse(self.story.is_locked)
 
     def test_lock_seconds_remaining(self):
@@ -125,10 +143,9 @@ class AppTestCase(TestCase):
     
     def test_gather_lockable_models(self):
         from locking import utils
-        from locking.tests import models
         lockable_models = utils.gather_lockable_models()
-        self.assertTrue("story" in lockable_models["tests"])
-        self.assertTrue("unlockable" not in lockable_models["tests"])
+        self.assertTrue("story" in lockable_models["story_app"])
+        self.assertTrue("unlockable" not in lockable_models["story_app"])
 
     def test_locking_bit_when_locking(self):
         # when we've locked something, we should set an administrative
@@ -180,38 +197,40 @@ class AppTestCase(TestCase):
         self.assertEquals(unlocked.count(), 1)
         self.assertTrue(len(set(locked).intersection(set(unlocked))) == 0)
 
+
 users = [
     # Stan is a superuser
     {"username": "Stan", "password": "green pastures"},
     # Fred has pretty much no permissions whatsoever
     {"username": "Fred", "password": "pastures of green"},
-    ]
-    
+]
+
+
 class BrowserTestCase(TestCase):
-    fixtures = ['locking_scenario',]
-    apps = ('locking.tests', 'django.contrib.auth', 'django.contrib.admin', )
-    # REFACTOR: 
-    # urls = 'locking.tests.urls'
+    fixtures = ['locking_scenario', ]
+    urls = 'story_app.urls'
 
     def setUp(self):
         # some objects we might use directly, instead of via the client
         self.story = story = testmodels.Story.objects.all()[0]
         user_objs = User.objects.all()
         self.user, self.alt_user = user_objs
+        self.user.set_password(users[0]['password'])
+        self.user.save()
+        self.alt_user.set_password(users[1]['password'])
+        self.alt_user.save()
         # client setup
         self.c = Client()
         self.c.login(**users[0])
-        story_args = [story._meta.app_label, story._meta.module_name, story.pk]
-        # refactor: http://docs.djangoproject.com/en/dev/topics/testing/#urlconf-configuration
-        # is probably a smarter way to go about this
-        self.urls = {
-            "change": reverse('admin:tests_story_change', args=[story.pk]),
-            "changelist": reverse('admin:tests_story_changelist'),
+        story_args = [story._meta.app_label, story._meta.model_name, story.pk]
+        self.reversed_urls = {
+            "change": reverse('admin:story_app_story_change', args=[story.pk]),
+            "changelist": reverse('admin:story_app_story_changelist'),
             "lock": reverse(views.lock, args=story_args),
             "unlock": reverse(views.unlock, args=story_args),
             "is_locked": reverse(views.is_locked, args=story_args),
             "js_variables": reverse(views.js_variables),
-            }
+        }
     
     def tearDown(self):
         pass
@@ -222,7 +241,7 @@ class BrowserTestCase(TestCase):
     # - 'unauthenticated' is when a user is logged out of Django
       
     def test_lock_when_allowed(self):
-        res = self.c.get(self.urls['lock'])        
+        res = self.c.get(self.reversed_urls['lock'])
         self.assertEquals(res.status_code, 200)
         # reload our test story
         story = testmodels.Story.objects.get(pk=self.story.id)
@@ -230,7 +249,7 @@ class BrowserTestCase(TestCase):
         
     def test_lock_when_logged_out(self):
         self.c.logout()
-        res = self.c.get(self.urls['lock'])
+        res = self.c.get(self.reversed_urls['lock'])
         self.assertEquals(res.status_code, 401)
     
     def test_lock_when_unauthorized(self):
@@ -238,14 +257,14 @@ class BrowserTestCase(TestCase):
         # this tests the user_may_change_model decorator
         self.c.logout()
         self.c.login(**users[1])
-        res = self.c.get(self.urls['lock'])        
+        res = self.c.get(self.reversed_urls['lock'])
         self.assertEquals(res.status_code, 401)
     
     def test_lock_when_does_not_apply(self):
         # don't make a resource available to lock models that don't 
         # have locking enabled -- this tests the is_lockable decorator
         obj = testmodels.Unlockable.objects.get(pk=1)
-        args = [obj._meta.app_label, obj._meta.module_name, obj.pk]
+        args = [obj._meta.app_label, obj._meta.model_name, obj.pk]
         url = reverse(views.lock, args=args)
         res = self.c.get(url)        
         self.assertEquals(res.status_code, 404)              
@@ -253,13 +272,13 @@ class BrowserTestCase(TestCase):
     def test_lock_when_disallowed(self):
         self.story.lock_for(self.alt_user)
         self.story.save()
-        res = self.c.get(self.urls['lock'])        
+        res = self.c.get(self.reversed_urls['lock'])
         self.assertEquals(res.status_code, 403)
     
     def test_unlock_when_allowed(self):
         self.story.lock_for(self.user)
         self.story.save()
-        res = self.c.get(self.urls['unlock'])        
+        res = self.c.get(self.reversed_urls['unlock'])
         self.assertEquals(res.status_code, 200)
         # reload our test story
         story = testmodels.Story.objects.get(pk=self.story.id)
@@ -268,13 +287,13 @@ class BrowserTestCase(TestCase):
     def test_unlock_when_disallowed(self):
         self.story.lock_for(self.alt_user)
         self.story.save()
-        res = self.c.get(self.urls['unlock'])        
+        res = self.c.get(self.reversed_urls['unlock'])
         self.assertEquals(res.status_code, 403)
 
     def test_is_locked_when_applies(self):
         self.story.lock_for(self.alt_user)
         self.story.save()
-        res = self.c.get(self.urls['is_locked'])
+        res = self.c.get(self.reversed_urls['is_locked'])
         res = simplejson.loads(res.content)
         self.assertTrue(res['applies'])
         self.assertTrue(res['is_active'])
@@ -282,31 +301,31 @@ class BrowserTestCase(TestCase):
     def test_is_locked_when_self(self):
         self.story.lock_for(self.user)
         self.story.save()
-        res = self.c.get(self.urls['is_locked'])
+        res = self.c.get(self.reversed_urls['is_locked'])
         res = simplejson.loads(res.content)
         self.assertFalse(res['applies'])
         self.assertTrue(res['is_active'])
 
     def test_js_variables(self):
-        res = self.c.get(self.urls['js_variables'])
+        res = self.c.get(self.reversed_urls['js_variables'])
         self.assertEquals(res.status_code, 200)
         self.assertContains(res, LOCK_TIMEOUT)
     
     def test_admin_media(self):
-        res = self.c.get(self.urls['change'])
+        res = self.c.get(self.reversed_urls['change'])
         self.assertContains(res, 'admin.locking.js')
     
     def test_admin_changelist_when_locked(self):
         self.story.lock_for(self.alt_user)
         self.story.save()
-        res = self.c.get(self.urls['changelist'])
+        res = self.c.get(self.reversed_urls['changelist'])
         self.assertContains(res, 'locking/img/lock.png')
     
     def test_admin_changelist_when_locked_self(self):
         self.test_lock_when_allowed()
-        res = self.c.get(self.urls['changelist'])
+        res = self.c.get(self.reversed_urls['changelist'])
         self.assertContains(res, 'locking/img/page_edit.png')
     
     def test_admin_changelist_when_unlocked(self):
-        res = self.c.get(self.urls['changelist'])
+        res = self.c.get(self.reversed_urls['changelist'])
         self.assertNotContains(res, 'locking/img')

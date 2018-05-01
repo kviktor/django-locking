@@ -1,7 +1,7 @@
 [
     {
         "pk": 1, 
-        "model": "tests.story", 
+        "model": "story_app.story",
         "fields": {
             "content": "This is a little lockable story.", 
             "_locked_at": "2010-05-28 11:10:05", 
@@ -10,7 +10,7 @@
     }, 
     {
         "pk": 2, 
-        "model": "tests.story", 
+        "model": "story_app.story",
         "fields": {
             "content": "This is another article ready for locking and unlocking.", 
             "_locked_at": null, 
@@ -19,7 +19,7 @@
     }, 
     {
         "pk": 1, 
-        "model": "tests.unlockable", 
+        "model": "story_app.unlockable",
         "fields": {
             "content": "This is an object that doesn't have LockableModel as a base class."
         }

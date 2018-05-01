@@ -1,20 +1,20 @@
 # encoding: utf-8
-
 from datetime import datetime, timedelta
 
 from django.db import models
-from django.conf import settings
 from django.contrib.auth import models as auth
-try:
-    from django.utils.timezone import now
-except ImportError:
-    from datetime.datetime import now
+from django.utils.timezone import now
 
-from locking import LOCK_TIMEOUT, logger
-import managers
+from locking import (
+    LOCK_TIMEOUT,
+    logger,
+    managers,
+)
+
 
 class ObjectLockedError(IOError):
     pass
+
 
 class LockableModel(models.Model):
     """ LockableModel comes with three managers: ``objects``, ``locked`` and 
@@ -121,11 +121,10 @@ class LockableModel(models.Model):
             self._locked_at = now()
             self._locked_by = user
             self._hard_lock = self.__init_hard_lock = hard_lock
-            date = self.locked_at.strftime("%H:%M:%S")
             # an administrative toggle, to make it easier for devs to extend `django-locking`
             # and react to locking and unlocking
             self._state.locking = True
-            logger.info("Initiated a %s lock for `%s` at %s" % (self.lock_type, self.locked_by, self.locked_at))     
+            logger.info("Initiated a %s lock for `%s` at %s" % (self.lock_type, self.locked_by, self.locked_at))
 
     def unlock(self):
         """

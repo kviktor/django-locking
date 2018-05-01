@@ -1,10 +1,9 @@
 # encoding: utf-8
-
 from django.http import HttpResponse
-from django.contrib.contenttypes.models import ContentType
 
 from locking.models import LockableModel
 from locking import logger
+
 
 def user_may_change_model(fn):
     def view(request, app, model, *vargs, **kwargs):
@@ -18,6 +17,8 @@ def user_may_change_model(fn):
 
 def is_lockable(fn):
     def view(request, app, model, *vargs, **kwargs):
+        from django.contrib.contenttypes.models import ContentType
+
         try:
             cls = ContentType.objects.get(app_label=app, model=model).model_class()
             if issubclass(cls, LockableModel):
@@ -32,6 +33,7 @@ def is_lockable(fn):
         else:
             return HttpResponse(status=404)
     return view
+
 
 def log(view):
     def decorated_view(*vargs, **kwargs):
