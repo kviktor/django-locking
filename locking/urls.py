@@ -24,6 +24,6 @@ try:
     ]
 except NameError:  # django 1.9
     urlpatterns += [
-        url(r'^jsi18n/$', javascript_catalog, kwargs={'package': 'locking'},
+        url(r'^jsi18n/$', javascript_catalog, kwargs={'packages': 'locking'},
             name='javascript-catalog'),
     ]

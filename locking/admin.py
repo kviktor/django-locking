@@ -61,7 +61,7 @@ class LockableAdmin(admin.ModelAdmin):
             else:
                 locked_until = _("Still locked for %s minutes by %s") % (
                     minutes_remaining, obj.locked_by)
-                return '<img src="{}" title="" />'.format(
+                return '<img src="{}" title="{}" />'.format(
                     static('locking/img/lock.png'), locked_until)
 
         else:

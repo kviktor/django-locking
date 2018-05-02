@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-Views are called from javascript to open and close assets (objects),
+Views called from javascript to open and close assets (objects),
 in order to prevent concurrent editing.
 """
 import simplejson
