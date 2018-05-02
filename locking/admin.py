@@ -1,15 +1,12 @@
 # encoding: utf-8
 
-from datetime import datetime
-
+from django import forms
+from django import VERSION as django_version
 from django.contrib import admin
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.templatetags.static import static
 from django.utils.translation import ugettext as _
-from django import forms
 
-from locking import LOCK_TIMEOUT, views
 
 class LockableAdmin(admin.ModelAdmin):
     @property
@@ -31,13 +28,13 @@ class LockableAdmin(admin.ModelAdmin):
         js = (
             'http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js', 
             'locking/js/jquery.url.packed.js',
-            #reverse('django.views.i18n.javascript_catalog'),
+            reverse('javascript-catalog'),
             reverse('locking_variables'),
             'locking/js/admin.locking.js',
-            )
-        
+        )
+
         return forms.Media(css=css, js=js)
-    
+
     def changelist_view(self, request, extra_context=None):
         # we need the request objects in a few places where it's usually not present, 
         # so we're tacking it on to the LockableAdmin class
@@ -50,7 +47,7 @@ class LockableAdmin(admin.ModelAdmin):
         if obj.pk:
             obj.unlock_for(request.user)
         obj.save()
-        
+
     def lock(self, obj):
         if obj.is_locked:
             seconds_remaining = obj.lock_seconds_remaining
@@ -70,5 +67,5 @@ class LockableAdmin(admin.ModelAdmin):
         else:
             return ''
     lock.allow_tags = True
-    
+
     list_display = ('__str__', 'lock')

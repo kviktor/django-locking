@@ -1,8 +1,8 @@
 # encoding: utf-8
-
 from django.contrib import admin
-from story_app.models import Story
+
 from locking.admin import LockableAdmin
+from story_app.models import Story
 
 
 class StoryAdmin(LockableAdmin):

@@ -1,3 +1,4 @@
+# coding=utf-8
 from django.db import models
 from locking import models as locking
 
@@ -11,8 +12,10 @@ class Story(locking.LockableModel):
 
 
 class Unlockable(models.Model):
-    # this model serves to test that utils.gather_lockable_models
-    # actually does what it's supposed to
+    """
+    This model serves to test that `utils.gather_lockable_models`
+    actually does what it's supposed to.
+    """
     content = models.TextField(blank=True)
 
     class Meta:

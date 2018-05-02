@@ -5,5 +5,4 @@ docs/_build
 build
 dist
 /.idea/*
-
 db.sqlite3

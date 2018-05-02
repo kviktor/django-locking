@@ -4,7 +4,7 @@
         "model": "story_app.story",
         "fields": {
             "content": "This is a little lockable story.", 
-            "_locked_at": "2010-05-28 11:10:05", 
+            "_locked_at": "2010-05-28T11:10:05+0000",
             "_locked_by": 2
         }
     }, 
@@ -61,12 +61,12 @@
             "is_active": true, 
             "is_superuser": true, 
             "is_staff": true, 
-            "last_login": "2010-05-28 07:03:47", 
+            "last_login": "2010-05-28T07:03:47+0000",
             "groups": [], 
             "user_permissions": [], 
             "password": "sha1$8aacc$d4ddcce2942a31430eb29a00c1d8a314e5577f8b",
             "email": "", 
-            "date_joined": "2010-05-28 04:54:28"
+            "date_joined": "2010-05-28T04:54:28+0000"
         }
     }, 
     {
@@ -79,12 +79,12 @@
             "is_active": true, 
             "is_superuser": false, 
             "is_staff": false, 
-            "last_login": "2010-05-28 10:22:49", 
+            "last_login": "2010-05-28T10:22:49+0000",
             "groups": [], 
             "user_permissions": [], 
             "password": "sha1$802af$9cb1b9b3998fccb7fdd9cb0e493a505d43e033d3", 
             "email": "", 
-            "date_joined": "2010-05-28 10:22:49"
+            "date_joined": "2010-05-28T10:22:49+0000"
         }
     }
 ]

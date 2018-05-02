@@ -1,8 +1,8 @@
 # encoding: utf-8
 from datetime import datetime, timedelta
 
-from django.db import models
 from django.contrib.auth import models as auth
+from django.db import models
 from django.utils.timezone import now
 
 from locking import (
