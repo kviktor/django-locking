@@ -6,3 +6,4 @@ build
 dist
 /.idea/*
 
+db.sqlite3

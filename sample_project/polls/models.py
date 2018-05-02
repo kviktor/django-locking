@@ -1,8 +1,10 @@
 #-*- coding: utf-8 -*-
 from django.db import models
 
+from locking.models import LockableModel
 
-class Poll(models.Model):
+
+class Poll(LockableModel):
     question = models.CharField(max_length=200)
 
     def __unicode__(self):  # Python 3: def __str__(self):

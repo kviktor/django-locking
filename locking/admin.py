@@ -5,6 +5,7 @@ from datetime import datetime
 from django.contrib import admin
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.templatetags.static import static
 from django.utils.translation import ugettext as _
 from django import forms
 
@@ -41,7 +42,8 @@ class LockableAdmin(admin.ModelAdmin):
         # we need the request objects in a few places where it's usually not present, 
         # so we're tacking it on to the LockableAdmin class
         self.request = request
-        return super(LockableAdmin, self).changelist_view(request, extra_context)
+        return super(
+            LockableAdmin, self).changelist_view(request, extra_context)
 
     def save_model(self, request, obj, form, change):
         # object creation doesn't need/have locking in place
@@ -53,18 +55,17 @@ class LockableAdmin(admin.ModelAdmin):
         if obj.is_locked:
             seconds_remaining = obj.lock_seconds_remaining
             minutes_remaining = seconds_remaining/60
-            locked_until = _("Still locked for %s minutes by %s") \
-                % (minutes_remaining, obj.locked_by)
-            if self.request.user == obj.locked_by: 
-                locked_until_self = _("You have a lock on this article for %s more minutes.") \
-                    % (minutes_remaining)
-                return '<img src="%slocking/img/page_edit.png" title="%s" />' \
-                    % (settings.MEDIA_URL, locked_until_self)
+            if self.request.user == obj.locked_by:
+                locked_until_self = _(
+                    "You have a lock on this article for %s more minutes.") % (
+                    minutes_remaining)
+                return '<img src="{}" title="{}" />'.format(
+                    static('locking/img/page_edit.png'), locked_until_self)
             else:
-                locked_until = _("Still locked for %s minutes by %s") \
-                    % (minutes_remaining, obj.locked_by)
-                return '<img src="%slocking/img/lock.png" title="%s" />' \
-                    % (settings.MEDIA_URL, locked_until)
+                locked_until = _("Still locked for %s minutes by %s") % (
+                    minutes_remaining, obj.locked_by)
+                return '<img src="{}" title="" />'.format(
+                    static('locking/img/lock.png'), locked_until)
 
         else:
             return ''

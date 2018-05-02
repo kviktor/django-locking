@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
+from locking.admin import LockableAdmin
 from .models import Choice, Poll
 
 
@@ -10,14 +11,14 @@ class ChoiceInline(admin.TabularInline):
     extra = 3
 
 
-class PollAdmin(admin.ModelAdmin):
+class PollAdmin(LockableAdmin):
     fieldsets = [
         (None, {
             'fields': ['question'],
         }),
     ]
     inlines = [ChoiceInline]
-    list_display = ('question',)
+    list_display = ('question', 'lock')
     search_fields = ['question']
 
 

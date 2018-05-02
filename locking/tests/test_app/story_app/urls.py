@@ -8,5 +8,5 @@ urlpatterns = [
     url(r'^ajax/admin/', include('locking.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'', include('story_app.urls')),
-    # url(r'', include('staticfiles.urls')),
+    url(r'', include('staticfiles.urls')),
 ]
