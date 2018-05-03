@@ -4,3 +4,5 @@ docs/_build
 *.egg-info
 build
 dist
+/.idea/*
+db.sqlite3

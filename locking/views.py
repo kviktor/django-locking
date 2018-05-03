@@ -1,15 +1,15 @@
+# coding=utf-8
+"""
+Views called from javascript to open and close assets (objects),
+in order to prevent concurrent editing.
+"""
 import simplejson
 
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
 
+from locking import utils, LOCK_TIMEOUT, models
 from locking.decorators import user_may_change_model, is_lockable, log
-from locking import utils, LOCK_TIMEOUT, logger, models
 
-"""
-These views are called from javascript to open and close assets (objects), in order
-to prevent concurrent editing.
-"""
 
 @log
 @user_may_change_model
@@ -25,6 +25,7 @@ def lock(request, app, model, id):
         # The user tried to overwrite an existing lock by another user.
         # No can do, pal!
         return HttpResponse(status=403)
+
 
 @log
 @user_may_change_model
@@ -46,6 +47,7 @@ def unlock(request, app, model, id):
     except models.ObjectLockedError:
         return HttpResponse(status=403)
 
+
 @log
 @user_may_change_model
 @is_lockable
@@ -58,6 +60,7 @@ def is_locked(request, app, model, id):
         "applies": obj.lock_applies_to(request.user),
         })
     return HttpResponse(response)
+
 
 @log
 def js_variables(request):

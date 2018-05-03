@@ -1,7 +1,8 @@
 # encoding: utf-8
-
 from django.contrib.contenttypes.models import ContentType
+
 from locking.models import LockableModel
+
 
 def gather_lockable_models():
     lockable_models = dict()
@@ -10,7 +11,7 @@ def gather_lockable_models():
         # there might be a None value betwixt our content types
         if model:
             app = model._meta.app_label
-            name = model._meta.module_name
+            name = model._meta.model_name
             if issubclass(model, LockableModel):
                 lockable_models.setdefault(app, {})
                 lockable_models[app][name] = model
