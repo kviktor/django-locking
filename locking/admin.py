@@ -3,7 +3,7 @@
 from django import forms
 from django import VERSION as django_version
 from django.contrib import admin
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.templatetags.static import static
 from django.utils.translation import ugettext as _
 
@@ -18,15 +18,15 @@ class LockableAdmin(admin.ModelAdmin):
         #
         # Doing so would result in an ImproperlyConfigured exception, stating
         # "The included urlconf doesn't have any patterns in it."
-        # 
+        #
         # See http://docs.djangoproject.com/en/dev/topics/forms/media/#media-as-a-dynamic-property
         # for more information about dynamic media definitions.
-        
+
         css = {
             'all': ('locking/css/locking.css',)
             }
         js = (
-            'http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js', 
+            'http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js',
             'locking/js/jquery.url.packed.js',
             reverse('javascript-catalog'),
             reverse('locking_variables'),
@@ -36,7 +36,7 @@ class LockableAdmin(admin.ModelAdmin):
         return forms.Media(css=css, js=js)
 
     def changelist_view(self, request, extra_context=None):
-        # we need the request objects in a few places where it's usually not present, 
+        # we need the request objects in a few places where it's usually not present,
         # so we're tacking it on to the LockableAdmin class
         self.request = request
         return super(
